@@ -56,12 +56,20 @@
           buildPhase = ''
             mkdir -p closure-compiler
             cp ${closure-compiler} closure-compiler/compiler.jar
-            make all all-debug
+            make all all-debug build/v86-fallback.wasm
           '';
 
           installPhase = ''
-            mkdir -p $out/build
-            cp -r build $out/.
+            mkdir -p $out
+            cp \
+              build/libv86-debug.js \
+              build/libv86-debug.mjs \
+              build/libv86.js \
+              build/libv86.mjs \
+              build/v86-debug.wasm \
+              build/v86-fallback.wasm \
+              build/v86.wasm \
+              $out/
           '';
         };
       }
