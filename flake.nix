@@ -32,7 +32,6 @@
       {
         defaultPackage = pkgs.stdenv.mkDerivation {
           name = "v86";
-          buildInputs = [];
           src = "${v86-src}";
 
           nativeBuildInputs = [
