@@ -11,6 +11,13 @@
       url = "github:copy/v86";
       flake = false;
     };
+    seabios-src = {
+      # official git repo seems to be down?
+      #url = "git+https://git.seabios.org/seabios.git?ref=rel-1.16.2";
+      # use github mirror instead
+      url = "github:coreboot/seabios/rel-1.16.2";
+      flake = false;
+    };
     closure-compiler = {
       # From Makefile
       # don't upgrade until https://github.com/google/closure-compiler/issues/3972 is fixed
@@ -18,7 +25,7 @@
       flake = false;
     };
   };
-  outputs = { self, nixpkgs, utils, rust-overlay, v86-src, closure-compiler }:
+  outputs = { self, nixpkgs, utils, rust-overlay, v86-src, seabios-src, closure-compiler }:
     utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs {
@@ -28,9 +35,7 @@
         rustToolchain = pkgs.rust-bin.stable.latest.default.override {
           targets = [ "wasm32-unknown-unknown" ];
         };
-      in
-      {
-        defaultPackage = pkgs.stdenv.mkDerivation {
+        libv86 = pkgs.stdenv.mkDerivation {
           name = "v86";
           src = "${v86-src}";
 
@@ -70,6 +75,30 @@
               build/v86.wasm \
               $out/
           '';
+        };
+        seabios = pkgs.stdenv.mkDerivation {
+          name = "seabios";
+          src = "${seabios-src}";
+          nativeBuildInputs = [
+            pkgs.python3
+          ];
+          configurePhase = ''
+            cp "${v86-src}/bios/seabios.config" .config
+          '';
+          buildPhase = ''
+            make
+          '';
+          installPhase = ''
+            mkdir -p "$out"
+            cp out/bios.bin "$out/seabios.bin"
+            cp out/vgabios.bin "$out/vgabios.bin"
+          '';
+        };
+      in
+      {
+        packages = {
+          inherit libv86 seabios;
+          default = libv86;
         };
       }
     );

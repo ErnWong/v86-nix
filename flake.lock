@@ -33,6 +33,7 @@
         "closure-compiler": "closure-compiler",
         "nixpkgs": "nixpkgs",
         "rust-overlay": "rust-overlay",
+        "seabios-src": "seabios-src",
         "utils": "utils",
         "v86-src": "v86-src"
       }
@@ -54,6 +55,23 @@
       "original": {
         "owner": "oxalica",
         "repo": "rust-overlay",
+        "type": "github"
+      }
+    },
+    "seabios-src": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1675300479,
+        "narHash": "sha256-J2FuT+FXn9YoFLSfxDOxyKZvKrys59a6bP1eYvEXVNU=",
+        "owner": "coreboot",
+        "repo": "seabios",
+        "rev": "ea1b7a0733906b8425d948ae94fba63c32b1d425",
+        "type": "github"
+      },
+      "original": {
+        "owner": "coreboot",
+        "ref": "rel-1.16.2",
+        "repo": "seabios",
         "type": "github"
       }
     },
