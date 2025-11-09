@@ -1,14 +1,17 @@
 diff --git a/tools/copy-to-sha256.py b/tools/copy-to-sha256.py
-index 96e2b9b6..41ebff65 100755
+index 96e2b9b6..20ed4bbb 100755
 --- a/tools/copy-to-sha256.py
 +++ b/tools/copy-to-sha256.py
-@@ -76,6 +76,9 @@ def handle_dir(logger, from_path: str, to_path: str):
+@@ -76,7 +76,11 @@ def handle_dir(logger, from_path: str, to_path: str):
  def handle_tar(logger, tar, to_path: str):
      for member in tar.getmembers():
          if member.isfile() or member.islnk():
-+            if member.islnk() and member.linkname.startswith('/'):
+-            f = tar.extractfile(member)
++            resolved_member = member
++            while resolved_member.islnk() and resolved_member.linkname.startswith('/'):
 +                # Workaround for nix absolute symlink paths which won't get resolved correctly in tarfile
-+                member = tar.getmember(member.linkname.removeprefix('/'))
-             f = tar.extractfile(member)
++                resolved_member = tar.getmember(member.linkname.removeprefix('/'))
++            f = tar.extractfile(resolved_member)
              file_hash = hash_fileobj(f)
              filename = file_hash[0:HASH_LENGTH] + ".bin"
+             to_abs = os.path.join(to_path, filename)
