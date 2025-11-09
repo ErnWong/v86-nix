@@ -94,10 +94,28 @@
             cp out/vgabios.bin "$out/vgabios.bin"
           '';
         };
+        tools = pkgs.stdenv.mkDerivation {
+          name = "v86-tools";
+          src = "${v86-src}";
+          nativeBuildInputs = [
+            pkgs.python314
+          ];
+          buildPhase = ''
+            patchShebangs --build tools/copy-to-sha256.py
+            patchShebangs --build tools/fs2json.py
+            patchShebangs --build tools/split-image.py
+          '';
+          installPhase = ''
+            mkdir -p "$out/bin"
+            cp tools/copy-to-sha256.py "$out/bin"
+            cp tools/fs2json.py "$out/bin"
+            cp tools/split-image.py "$out/bin"
+          '';
+        };
       in
       {
         packages = {
-          inherit libv86 seabios;
+          inherit libv86 seabios tools;
           default = libv86;
         };
       }
