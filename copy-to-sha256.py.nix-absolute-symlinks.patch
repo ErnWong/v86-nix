@@ -1,5 +1,5 @@
 diff --git a/tools/copy-to-sha256.py b/tools/copy-to-sha256.py
-index 96e2b9b6..3891ad78 100755
+index 96e2b9b6..95471d2c 100755
 --- a/tools/copy-to-sha256.py
 +++ b/tools/copy-to-sha256.py
 @@ -75,8 +75,17 @@ def handle_dir(logger, from_path: str, to_path: str):
@@ -17,13 +17,13 @@ index 96e2b9b6..3891ad78 100755
 +            resolved_member = tar.getmember(resolved_member.linkname)
 +
 +        # Resulting resolved member may not a regular or hard-linked file, so skip those that case.
-+        if resolved_member.isfile()
++        if resolved_member.isfile():
 +            f = tar.extractfile(resolved_member)
              file_hash = hash_fileobj(f)
              filename = file_hash[0:HASH_LENGTH] + ".bin"
              to_abs = os.path.join(to_path, filename)
 diff --git a/tools/fs2json.py b/tools/fs2json.py
-index 37b962c7..2016aacb 100755
+index 37b962c7..33d0c2de 100755
 --- a/tools/fs2json.py
 +++ b/tools/fs2json.py
 @@ -236,9 +236,15 @@ def handle_tar(logger, tar):
@@ -37,7 +37,7 @@ index 37b962c7..2016aacb 100755
 +            # Tar hardlink members' linknames are already relative to root of the archive
 +            resolved_member = tar.getmember(resolved_member.linkname)
 +
-+        if resolved_member.isfile()
++        if resolved_member.isfile():
              obj[IDX_MODE] |= S_IFREG
 -            f = tar.extractfile(member)
 +            f = tar.extractfile(resolved_member)
