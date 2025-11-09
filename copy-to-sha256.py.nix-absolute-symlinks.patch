@@ -23,7 +23,7 @@ index 96e2b9b6..95471d2c 100755
              filename = file_hash[0:HASH_LENGTH] + ".bin"
              to_abs = os.path.join(to_path, filename)
 diff --git a/tools/fs2json.py b/tools/fs2json.py
-index 37b962c7..33d0c2de 100755
+index 37b962c7..4cc038ae 100755
 --- a/tools/fs2json.py
 +++ b/tools/fs2json.py
 @@ -236,9 +236,15 @@ def handle_tar(logger, tar):
@@ -44,3 +44,16 @@ index 37b962c7..33d0c2de 100755
              file_hash = hash_fileobj(f)
              filename = file_hash[0:HASH_LENGTH] + ".bin"
              existing = filename_to_hash.get(filename)
+@@ -249,10 +255,10 @@ def handle_tar(logger, tar):
+                 # fix size for hard links
+                 f.seek(0, os.SEEK_END)
+                 obj[IDX_SIZE] = int(f.tell())
+-        elif member.isdir():
++        elif resolved_member.isdir():
+             obj[IDX_MODE] |= S_IFDIR
+             obj[IDX_TARGET] = []
+-        elif member.issym():
++        elif resolved_member.issym():
+             obj[IDX_MODE] |= S_IFLNK
+             obj[IDX_TARGET] = member.linkname
+         else:
