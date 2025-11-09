@@ -1,63 +1,24 @@
 diff --git a/tools/copy-to-sha256.py b/tools/copy-to-sha256.py
-index 96e2b9b6..9d33af4b 100755
+index 96e2b9b6..c56a859f 100755
 --- a/tools/copy-to-sha256.py
 +++ b/tools/copy-to-sha256.py
-@@ -74,20 +74,44 @@ def handle_dir(logger, from_path: str, to_path: str):
-                 shutil.copyfile(absname, to_abs)
+@@ -75,8 +75,17 @@ def handle_dir(logger, from_path: str, to_path: str):
  
  def handle_tar(logger, tar, to_path: str):
--    for member in tar.getmembers():
+     for member in tar.getmembers():
 -        if member.isfile() or member.islnk():
 -            f = tar.extractfile(member)
--            file_hash = hash_fileobj(f)
--            filename = file_hash[0:HASH_LENGTH] + ".bin"
--            to_abs = os.path.join(to_path, filename)
--
--            if os.path.exists(to_abs):
--                logger.info("Exists, skipped {} ({})".format(to_abs, member.name))
--            else:
--                logger.info("Extracted {} ({})".format(to_abs, member.name))
--                to_file = open(to_abs, "wb")
--                f.seek(0)
--                shutil.copyfileobj(f, to_file)
-+    member = tar.getmember('nix/store/8wbdbdwbl1zyh07nz56i8a318xadkffv-systemd/bin/poweroff')
-+    resolved_member = member
-+    while resolved_member.islnk():
-+        try:
-+            try_resolved_path = resolved_member.linkname.removeprefix('/')
-+            logger.info(f'Trying {try_resolved_path}')
-+            resolved_member = tar.getmember(try_resolved_path)
-+        except KeyError:
-+            try_resolved_path = os.dirname(resolved_member.name).removesuffix('/') + resolved_member.linkname.removeprefix('/')
-+            logger.info(f'Failed. Trying {try_resolved_path}')
-+            resolved_member = tar.getmember(try_resolved_path)
-+        logger.info(f"EPHW resolved: {resolved_member.name} (lnk? {resolved_member.islnk()} {resolved_member.linkname})")
-+    if resolved_member.isfile() or resolved_member.islnk():
-+        logger.info(f"EPHW extracting {member.name} (lnk? {member.linkname})")
-+        f = tar.extractfile(resolved_member)
-+        logger.info('success')
-+    # for member in tar.getmembers():
-+    #     if member.isfile() or member.islnk():
-+    #         logger.info(f"EPHW extracting {member.name} (lnk? {member.linkname})")
-+    #         resolved_member = member
-+    #         while resolved_member.islnk():
-+    #             try:
-+    #                 resolved_member = tar.getmember(resolved_member.linkname.removeprefix('/'))
-+    #             except KeyError:
-+    #                 resolved_member = tar.getmember(os.dirname(resolved_member.name).removesuffix('/') + resolved_member.linkname.removeprefix('/'))
-+    #             logger.info(f"EPHW resolved: {resolved_member.name} (lnk? {resolved_member.linkname})")
-+    #         f = tar.extractfile(resolved_member)
-+    #         file_hash = hash_fileobj(f)
-+    #         filename = file_hash[0:HASH_LENGTH] + ".bin"
-+    #         to_abs = os.path.join(to_path, filename)
++        logging.info(f'Checking {member.name}')
 +
-+    #         if os.path.exists(to_abs):
-+    #             logger.info("Exists, skipped {} ({})".format(to_abs, member.name))
-+    #         else:
-+    #             logger.info("Extracted {} ({})".format(to_abs, member.name))
-+    #             to_file = open(to_abs, "wb")
-+    #             f.seek(0)
-+    #             shutil.copyfileobj(f, to_file)
- 
- 
- if __name__ == "__main__":
++        # Manually resolve hardlinks first
++        resolved_member = member
++        while resolved_member.islnk():
++            # Tar hardlink members' linknames are already relative to root of the archive
++            resolved_member = tar.getmember(resolved_member.linkname)
++
++        # Resulting resolved member may not a regular or hard-linked file, so skip those that case.
++        if resolved_member.isfile() or resolved_member.islnk():
++            f = tar.extractfile(resolved_member)
+             file_hash = hash_fileobj(f)
+             filename = file_hash[0:HASH_LENGTH] + ".bin"
+             to_abs = os.path.join(to_path, filename)
