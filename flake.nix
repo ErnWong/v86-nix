@@ -97,6 +97,7 @@
         tools = pkgs.stdenv.mkDerivation {
           name = "v86-tools";
           src = "${v86-src}";
+          patches = [./copy-to-sha256.py.nix-absolute-symlinks.patch];
           nativeBuildInputs = [
             pkgs.python314
           ];
